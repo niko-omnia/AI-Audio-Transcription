@@ -1,0 +1,50 @@
+{
+  "manifest_version": 3,
+
+  "name": "AI Transcriptor",
+  "version": "1.0",
+
+  "permissions": [
+    "tabs",
+    "storage",
+    "offscreen",
+    "activeTab",
+    "scripting"
+  ],
+  
+  "action": {
+    "default_popup": "popup.html"
+  },
+
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["contentScript.js"]
+    }
+  ],
+
+  "web_accessible_resources": [
+    {
+      "resources": ["recorder.html"],
+      "matches": ["<all_urls>"]
+    }
+  ],
+
+  "commands": {
+    "toggle-recording": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+R"
+      },
+      "description": "Start/Stop transcription"
+    }
+  },  
+
+  "host_permissions": [
+    "<all_urls>"
+  ]
+}
