@@ -4,6 +4,11 @@ let lastText = "";
 let lastTime = 0;
 
 chrome.runtime.onMessage.addListener((msg) => {
+  if (msg.type == "PING") {
+    console.log("PONG!");
+    return;
+  }
+
   if (msg.type !== "TRANSCRIBED_TEXT") return;
 
   const now = Date.now();
@@ -16,4 +21,4 @@ chrome.runtime.onMessage.addListener((msg) => {
   document.execCommand("insertText", false, `${msg.text} `);
 });
 
-export { };
+export {};

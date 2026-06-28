@@ -5,7 +5,7 @@ async function ensureOffscreen() {
     await chrome.offscreen.createDocument({
       url: "offscreen.html",
       reasons: ["USER_MEDIA"],
-      justification: "Audio recording"
+      justification: "Audio recording",
     });
   } catch (e: any) {}
 }
@@ -33,7 +33,7 @@ chrome.runtime.onMessage.addListener(async (msg, sender) => {
     await ensureOffscreen();
 
     chrome.runtime.sendMessage({
-      type: "OFFSCREEN_START"
+      type: "OFFSCREEN_START",
     });
   }
 
@@ -46,7 +46,7 @@ chrome.runtime.onMessage.addListener(async (msg, sender) => {
     await chrome.storage.local.set({ isRecording: false });
 
     chrome.runtime.sendMessage({
-      type: "OFFSCREEN_STOP"
+      type: "OFFSCREEN_STOP",
     });
   }
 
@@ -56,34 +56,37 @@ chrome.runtime.onMessage.addListener(async (msg, sender) => {
 
     chrome.runtime.sendMessage({
       type: "STATE",
-      isRecording: state.isRecording ?? false
+      isRecording: state.isRecording ?? false,
     });
   }
 
-  // ⭐ ADD THIS: forward transcript to active tab
+  // forward transcript to active tab
   if (msg.type === "TRANSCRIBED_TEXT") {
     console.log("background received transcription", msg.text);
 
     const [tab] = await chrome.tabs.query({
       active: true,
-      currentWindow: true
+      currentWindow: true,
     });
-    console.log(tab, tab.id);
 
     if (!tab?.id) return;
-    
+
     if (!executedIn.includes(tab.id)) {
       executedIn.push(tab.id);
 
-      await chrome.scripting.executeScript({
-        target: { tabId: tab.id },
-        files: ["contentScript.js"]
-      });
+      try {
+        await chrome.tabs.sendMessage(tab.id, { type: "PING" });
+      } catch {
+        await chrome.scripting.executeScript({
+          target: { tabId: tab.id },
+          files: ["contentScript.js"],
+        });
+      }
     }
-    
+
     chrome.tabs.sendMessage(tab.id, {
       type: "TRANSCRIBED_TEXT",
-      text: msg.text
+      text: msg.text,
     });
   }
 });
